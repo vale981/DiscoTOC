@@ -19,20 +19,16 @@
   const SMOOTH_SCROLL_SPEED = 300;
   const TOC_ANIMATION_SPEED = 300;
 
-  const cleanUp = item => {
-    const cleanItem = item
+  const cleanUp = item => item
       .trim()
       .toLowerCase()
       .replace(
-        /[\{\}\[\]\\\/\<\>\(\)\|\+\?\*\^\'\`\'\"\.\_\$\d\s~!@#%&,;:=]/gi,
+        /[\{\}\[\]\\\/\<\>\(\)\|\+\?\*\^\'\`\'\"\.\_\$\s~!@#%&,;:=]/gi,
         "-"
       )
       .replace(/\-\-+/g, "-")
       .replace(/^\-/, "")
       .replace(/\-$/, "");
-
-    return cleanItem;
-  };
 
   const createAnchors = id => {
     const link = $("<a/>", {
@@ -262,9 +258,11 @@
       if ($elem.hasClass("d-editor-preview")) return;
       if (!$elem.parents("article#post_1").length) return;
 
-      const dToc = $elem.parents('.wiki');
+      let dToc = $elem.find(`[data-theme-toc="true"]`);
 
+      if (!dToc.length) dToc = $elem.parents('.wiki');
       if (!dToc.length) return this;
+
       const body = $elem;
       body.find("div, aside, blockquote, article, details").each(function() {
         $(this)
@@ -293,6 +291,10 @@
         }
       }
 
+      ids = {};
+      path = [];
+      lastLevel = 1;
+
       body.find(dTocHeadingSelectors).each(function() {
         if ($(this).hasClass("d-toc-ignore")) return;
         const heading = $(this);
@@ -302,6 +304,31 @@
         if (!id.length) {
           id = cleanUp(heading.text());
         }
+        
+        level = parseInt(heading.prop("tagName")[1])
+        if (level == 1) {
+            path = [id];
+        } else if (level > lastLevel) {
+            path.push(id);
+        } else {
+            if (level < lastLevel) {
+                path.pop()
+            }
+            
+            path[path.length - 1] = id;
+        }
+        
+        lastLevel = level;
+        id = path.join('-');
+
+        
+        if (id in ids) {
+            id = id + '-' + ids[id]++;
+        } else {
+            ids[id] = 1;
+        }
+        
+        
 
         heading
           .attr({
