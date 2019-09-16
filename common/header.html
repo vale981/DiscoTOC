@@ -262,7 +262,7 @@
       if ($elem.hasClass("d-editor-preview")) return;
       if (!$elem.parents("article#post_1").length) return;
 
-      const dToc = $elem.find(`[data-theme-toc="true"]`);
+      const dToc = $elem.parents('.wiki');
 
       if (!dToc.length) return this;
       const body = $elem;
